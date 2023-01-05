@@ -10,4 +10,4 @@ RUN poetry config virtualenvs.create false \
   && poetry install --no-dev --no-interaction --no-ansi
 
 COPY . /app
-CMD gunicorn -b 0.0.0.0 app:app
+CMD gunicorn -b 0.0.0.0:8000 app:app
