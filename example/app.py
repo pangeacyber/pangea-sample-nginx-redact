@@ -20,4 +20,4 @@ def random_ssn():
     # Generate a random number of lorem
     words = WORDS + [fake.ssn() for _ in range(random.randint(0, 11))]
     text_generator = TextLorem(words=words)
-    return text_generator.text()
+    return { "text": text_generator.text() }

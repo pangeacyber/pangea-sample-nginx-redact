@@ -1,0 +1,55 @@
+server {
+  listen 8080;
+
+  location /raw {
+    proxy_pass http://leaky_app:8000/;
+  }
+
+  location /internal {
+    proxy_pass http://leaky_app:8000/;
+
+    access_by_lua_block {
+      if not ngx.req.is_internal() then
+        ngx.exit(404)
+      end
+    }
+  }
+
+  location / {
+    resolver 8.8.8.8;
+    default_type 'text/plain';
+
+    # Transform the body
+    content_by_lua_block {
+      local cjson = require "cjson"
+      local res = ngx.location.capture("/internal")
+      for header, val in pairs(res.header) do
+       ngx.header[header] = val
+      end
+      local httpc = require("resty.http").new()
+      
+      local resp, err = httpc:request_uri("https://redact.aws.us.pangea.cloud/v1/redact", {
+        method = "POST",
+        body = cjson.encode({ ["text"] = res.body }),
+        headers = {
+          ["Content-Type"] = "application/json",
+          ["Authorization"] = "Bearer ${PANGEA_REDACT_TOKEN}",
+        },
+        ssl_verify=false,
+      })
+      if not resp then
+        ngx.log(ngx.Err, "Failed to redact text", err)
+        return ngx.exit(500)
+      end
+      local body = cjson.decode(resp.body).result.redacted_text
+      ngx.print(body)
+      return ngx.exit(res.status)
+    }
+
+    # Headers should be set by nginx in the final step
+    # Content will be different after redaction
+    header_filter_by_lua_block {
+      ngx.header["content-length"] = nil
+    }
+  }
+}

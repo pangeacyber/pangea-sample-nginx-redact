@@ -4,6 +4,9 @@ services:
     build: .
     ports:
       - "8080:8080"
+    environment:
+      - PANGEA_REDACT_TOKEN=${PANGEA_REDACT_TOKEN}
+    command: /bin/bash -c "envsubst < /etc/nginx/conf.d/example.template > /etc/nginx/conf.d/example.conf && nginx -g 'daemon off;'"
   leaky_app:
     build: ./example
     ports:
