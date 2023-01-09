@@ -1,10 +1,6 @@
 server {
   listen 8080;
 
-  location /raw {
-    proxy_pass http://leaky_app:8000/;
-  }
-
   location /internal {
     proxy_pass http://leaky_app:8000/;
 
@@ -19,7 +15,8 @@ server {
     resolver 8.8.8.8;
     default_type 'text/plain';
 
-    # Transform the body
+    # Fetch response from server and transform using redact service
+    # We cannot use the base nginx filters since socket allocation is blocked
     content_by_lua_block {
       local cjson = require "cjson"
       local res = ngx.location.capture("/internal")
@@ -28,6 +25,7 @@ server {
       end
       local httpc = require("resty.http").new()
       
+      # Select the region where you configured your project
       local resp, err = httpc:request_uri("https://redact.aws.us.pangea.cloud/v1/redact", {
         method = "POST",
         body = cjson.encode({ ["text"] = res.body }),
