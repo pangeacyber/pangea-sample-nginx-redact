@@ -29,7 +29,7 @@ app as the flask app generates random data every request.
 1. Go to the [redact configuration settings page](https://console.pangea.cloud/service/redact/rulesets) and enable the `US_SSN` rule under `Us Identification Numbers` section.
 1. Go to the [tokens page](https://console.pangea.cloud/project/tokens) and copy your redact token.
 1. Set `PANGEA_REDACT_TOKEN` env variable to your copied token
-1. Clone this repo: `git clone github.com/MichaelCombs28/nginx_redact_integration_sample.git`
+1. Clone this repo: `git clone https://github.com/pangeacyber/pangea-sample-nginx-redact.git`
 1. Run `docker-compose up` in the cloned root folder
 
 For more details regarding configuration and usage of redact, check out the [docs](https://pangea.cloud/docs/redact/).
